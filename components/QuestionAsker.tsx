@@ -1,14 +1,43 @@
-import { useState } from 'react'
+'use client'
+
+import { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Send } from 'lucide-react'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Send, Volume2, VolumeX } from 'lucide-react'
 
 export function QuestionAsker() {
     const [question, setQuestion] = useState('')
     const [answer, setAnswer] = useState('')
     const [asking, setAsking] = useState(false)
     const [error, setError] = useState('')
+    const [isSpeaking, setIsSpeaking] = useState(false)
+    const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
+
+    const speak = (text: string) => {
+        if ('speechSynthesis' in window) {
+            stopSpeaking()
+            utteranceRef.current = new SpeechSynthesisUtterance(text)
+            utteranceRef.current.onstart = () => setIsSpeaking(true)
+            utteranceRef.current.onend = () => setIsSpeaking(false)
+            speechSynthesis.speak(utteranceRef.current)
+        }
+    }
+
+    const stopSpeaking = () => {
+        if ('speechSynthesis' in window) {
+            speechSynthesis.cancel()
+            setIsSpeaking(false)
+        }
+    }
+
+    const toggleSpeech = () => {
+        if (isSpeaking) {
+            stopSpeaking()
+        } else if (answer) {
+            speak(answer)
+        }
+    }
 
     const handleAskQuestion = async () => {
         if (!question) return
@@ -16,6 +45,7 @@ export function QuestionAsker() {
         setAsking(true)
         setError('')
         setAnswer('')
+        stopSpeaking()
 
         try {
             const response = await fetch('http://localhost:3000/ask', {
@@ -62,7 +92,19 @@ export function QuestionAsker() {
             </div>
             {answer && (
                 <Alert>
-                    <AlertDescription className="whitespace-pre-wrap">{answer}</AlertDescription>
+                    <AlertTitle className="flex items-center justify-between">
+                        Answer
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={toggleSpeech}
+                            className="ml-2"
+                        >
+                            {isSpeaking ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                            <span className="ml-2">{isSpeaking ? 'Stop' : 'Listen'}</span>
+                        </Button>
+                    </AlertTitle>
+                    <AlertDescription className="mt-2 whitespace-pre-wrap">{answer}</AlertDescription>
                 </Alert>
             )}
             {error && (

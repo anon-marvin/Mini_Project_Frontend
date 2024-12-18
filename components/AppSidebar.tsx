@@ -1,6 +1,6 @@
 "use client"
 
-import { FileText, Home, Settings, Upload,BookOpenText } from 'lucide-react'
+import { FileText, Home, Settings, Upload } from 'lucide-react'
 import { usePathname } from "next/navigation"
 import Link from "next/link"
 
@@ -10,7 +10,6 @@ import {
     SidebarGroup,
     SidebarGroupContent,
     SidebarGroupLabel,
-    SidebarHeader,
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
